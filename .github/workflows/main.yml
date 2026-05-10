@@ -1,58 +1,41 @@
-# 政策
-物业服务
-物业管理
-+政策
-+住建部
-+政府工作报告
-+城市更新
-+老旧小区改造
-+完整社区
-+物业费指导价
-+物业管理条例
-+立法
-+监管
+name: TrendRadar Auto Run
 
-# 企业
-万物云
-保利物业
-招商积余
-华润万象生活
-万科物业
-碧桂园服务
-雅生活
-新大正
-绿城服务
-中海物业
-世茂服务
-+并购
-+收购
-+增资
-+上市
-+人事变动
-+高管
-+战略合作
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    # 每50分钟执行一次 北京时间定时
+    - cron: '*/50 * * * *'
+  workflow_dispatch: # 支持手动点按钮触发
 
-# 中标
-中标
-+物业服务项目
-+城市服务
-+环卫一体化
-+机关物业
-+学校物业
-+医院物业
-+产业园物业
-+中标金额
-+招标
-+公示
+permissions:
+  contents: read
+  write-all: true
 
-# 城市
-深圳
-惠州
-+中标
+jobs:
+  run-radar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-# 过滤
-!二手房
-!租房
-!房产销售
-!楼盘
-!装修
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run TrendRadar
+        run: node index.js
+
+      - name: Commit & Push report
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "actions@github.com"
+          git add .
+          git commit -m "Auto update radar report" || echo "No changes to commit"
+          git push
